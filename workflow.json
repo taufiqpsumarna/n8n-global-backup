@@ -1,0 +1,582 @@
+{
+  "name": "Automated Backup of n8n Workflows to GitLab Organized by Username",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "77ecc07d-8501-4453-b387-eced2a197dc8",
+      "name": "Manual Backup Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        -304,
+        1440
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "filters": {},
+        "requestOptions": {}
+      },
+      "id": "afc4596c-b07f-471c-8ac8-ecfca567a608",
+      "name": "Fetch N8N Workflows",
+      "type": "n8n-nodes-base.n8n",
+      "position": [
+        112,
+        1552
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "n8nApi": {
+          "id": "6pF9Zy28ajjDaiLn",
+          "name": "N8N_API_KEY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "backup-date",
+              "name": "backupDate",
+              "type": "string",
+              "value": "={{ $now.setZone('UTC').toFormat('yyyy-MM-dd') }}"
+            },
+            {
+              "id": "backup-path",
+              "name": "backupPath",
+              "type": "string",
+              "value": "=backups/{{ $now.setZone('UTC').toFormat('yyyy') }}/{{ $now.setZone('UTC').toFormat('MM') }}"
+            },
+            {
+              "id": "52c796e4-aafe-4144-b9a6-8d98574dddb9",
+              "name": "gitlabprojectOwner",
+              "value": "idstar-project/devops/automation",
+              "type": "string"
+            },
+            {
+              "id": "6f026178-903b-4b9f-b08f-67c9a7dcf150",
+              "name": "gitlabprojectPath",
+              "value": "n8n-global-backup",
+              "type": "string"
+            },
+            {
+              "id": "bb698da4-e76a-451d-95ed-da6af2d2407f",
+              "name": "workflowOwner",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "e582efab-3f34-4376-80a9-2b72a5f4d01f",
+      "name": "Prepare Backup Metadata",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        368,
+        1536
+      ],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "b0601be4-c36e-4f32-8a6e-9c3820d71d7d",
+      "name": "Process Each Workflow",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [
+        592,
+        1536
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "workflow-data",
+              "name": "workflowData",
+              "type": "object",
+              "value": "={{\n  {\n    \"id\": $('Fetch N8N Workflows').item.json.id,\n    \"name\": $('Fetch N8N Workflows').item.json.name,\n    \"active\": $('Fetch N8N Workflows').item.json.active,\n    \"nodes\": $('Fetch N8N Workflows').item.json.nodes,\n    \"connections\": $('Fetch N8N Workflows').item.json.connections,\n    \"settings\": $('Fetch N8N Workflows').item.json.settings,\n    \"tags\": $('Fetch N8N Workflows').item.json.tags,\n    \"createdAt\": $('Fetch N8N Workflows').item.json.createdAt,\n    \"updatedAt\": $('Fetch N8N Workflows').item.json.updatedAt\n  }\n}}"
+            },
+            {
+              "id": "creator-name",
+              "name": "creatorName",
+              "type": "string",
+              "value": "={{ ($('Fetch Users').first().json.data.find(u => u.id === ($('Fetch N8N Workflows').item.json.owner?.id || $('Fetch N8N Workflows').item.json.userId))?.email?.split('@')[0] || 'general').toLowerCase() }}"
+            },
+            {
+              "id": "file-name",
+              "name": "fileName",
+              "type": "string",
+              "value": "={{ $('Fetch N8N Workflows').item.json.name }}.json"
+            },
+            {
+              "id": "file-path",
+              "name": "filePath",
+              "type": "string",
+              "value": "=workflows/{{ $('Fetch N8N Workflows').item.json.name }}/{{ $('Fetch N8N Workflows').item.json.name }}.json"
+            },
+            {
+              "id": "8d4963f3-35a6-4d29-9142-9ead35ade7a3",
+              "name": "projectName",
+              "value": "={{ $json.project?.name || 'Personal' }}",
+              "type": "string"
+            },
+            {
+              "id": "85671fd2-a739-493a-8af8-c1b863ae7529",
+              "name": "folderName",
+              "value": "={{ $json.tags && $json.tags.length > 0 ? $json.tags[0].name : 'General' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "50db5244-5350-4614-8b1d-59052897120d",
+      "name": "Format Workflow for GitLab",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        912,
+        1264
+      ],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "id": "31c9717e-1399-4600-9af5-4e25639e7131",
+      "name": "Rate Limit Control",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        1136,
+        1264
+      ],
+      "webhookId": "c06823b0-4637-4e20-9c10-e020b3a74649",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "6edbebb3-1dc9-4e70-bd4b-0c02e6574808",
+              "operator": {
+                "name": "filter.operator.equals",
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "Bad request - please check your parameters"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2e97d466-0acc-4ce3-8d62-5b104f967a1e",
+      "name": "Check Backup Status",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        1584,
+        1264
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "error-log",
+              "name": "errorLog",
+              "type": "string",
+              "value": "=Failed to process {{ $json.fileName }}: {{ $json.error?.message || 'Unknown error' }}"
+            },
+            {
+              "id": "success-log",
+              "name": "successLog",
+              "type": "string",
+              "value": "=Successfully processed {{ $json.fileName }} for {{ $json.creatorName }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "8a9e5b26-6be4-4b23-8f6d-dacb6685043a",
+      "name": "Log Backup Results",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        816,
+        1456
+      ],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": "={{ $('Prepare Backup Metadata').item.json.gitlabprojectOwner }}",
+        "repository": "={{ $('Prepare Backup Metadata').item.json.gitlabprojectPath }}",
+        "filePath": "={{ $('Rate Limit Control').item.json.filePath }}",
+        "fileContent": "={{ JSON.stringify( $('Rate Limit Control').item.json.workflowData, null, 2) }}",
+        "commitMessage": "=Update {{ $('Rate Limit Control').item.json.fileName }} in {{ $('Rate Limit Control').item.json.creatorName }} at {{ $now.format('dd/mm/yyyy') }}",
+        "branch": "main"
+      },
+      "id": "d6abe5c3-441c-47a7-8903-e59549e34701",
+      "name": "Update Backup Summary",
+      "type": "n8n-nodes-base.gitlab",
+      "position": [
+        1696,
+        1552
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "gitlabApi": {
+          "id": "3tQVezwamEjhVold",
+          "name": "it@idstar.co.id"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply-forge@idstar.group",
+        "toEmail": "it-ops@idstar.group",
+        "subject": "=N8N Backup to Gitlab Notification",
+        "html": "=<!DOCTYPE html>\n<html lang=\"en\">\n\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>N8N Backup Notification</title>\n    <style>\n        body {\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            background-color: #f4f7f9;\n            margin: 0;\n            padding: 0;\n            color: #333;\n        }\n\n        .container {\n            max-width: 600px;\n            margin: 20px auto;\n            background-color: #ffffff;\n            border-radius: 12px;\n            overflow: hidden;\n            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);\n        }\n\n        .header {\n            background-color: #1a2b4b;\n            padding: 40px 20px;\n            text-align: center;\n            color: #ffffff;\n        }\n\n        .header h1 {\n            margin: 0;\n            font-size: 24px;\n            letter-spacing: 2px;\n            text-transform: uppercase;\n            font-weight: 300;\n        }\n\n        .status-badge {\n            display: inline-block;\n            background-color: #10b981;\n            color: white;\n            padding: 8px 20px;\n            border-radius: 50px;\n            font-weight: bold;\n            margin-top: 15px;\n            font-size: 14px;\n            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);\n        }\n\n        .content {\n            padding: 30px;\n        }\n\n        .summary-grid {\n            display: grid;\n            grid-template-columns: 1fr 1fr;\n            gap: 15px;\n            margin-bottom: 30px;\n        }\n\n        .summary-card {\n            background-color: #f9fafb;\n            padding: 15px;\n            border-radius: 8px;\n            border: 1px solid #e5e7eb;\n        }\n\n        .summary-card label {\n            display: block;\n            font-size: 10px;\n            color: #6b7280;\n            text-transform: uppercase;\n            letter-spacing: 1px;\n            margin-bottom: 5px;\n        }\n\n        .summary-card span {\n            font-size: 16px;\n            font-weight: 600;\n            color: #1a2b4b;\n        }\n\n        h3 {\n            color: #1a2b4b;\n            font-size: 18px;\n            margin-bottom: 15px;\n            border-left: 4px solid #3b82f6;\n            padding-left: 10px;\n        }\n\n        table {\n            width: 100%;\n            border-collapse: collapse;\n            margin-bottom: 25px;\n        }\n\n        th {\n            text-align: left;\n            font-size: 12px;\n            color: #6b7280;\n            text-transform: uppercase;\n            padding: 10px;\n            border-bottom: 2px solid #f3f4f6;\n        }\n\n        td {\n            padding: 12px 10px;\n            border-bottom: 1px solid #f3f4f6;\n            font-size: 14px;\n        }\n\n        .user-tag {\n            background-color: #e0e7ff;\n            color: #4338ca;\n            padding: 2px 8px;\n            border-radius: 4px;\n            font-size: 11px;\n            font-weight: 600;\n        }\n\n        .status-success {\n            color: #10b981;\n        }\n\n        .footer {\n            background-color: #f9fafb;\n            padding: 25px;\n            text-align: center;\n            border-top: 1px solid #e5e7eb;\n        }\n\n        .btn {\n            display: inline-block;\n            padding: 12px 25px;\n            border-radius: 6px;\n            text-decoration: none;\n            font-weight: 600;\n            font-size: 14px;\n            margin: 5px;\n            transition: all 0.2s;\n        }\n\n        .btn-primary {\n            background-color: #1a2b4b;\n            color: #ffffff !important;\n        }\n\n        .btn-outline {\n            border: 1.5px solid #1a2b4b;\n            color: #1a2b4b !important;\n        }\n\n        .footer-text {\n            font-size: 12px;\n            color: #9ca3af;\n            margin-top: 15px;\n        }\n    </style>\n</head>\n\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <h1>N8N Automation Bot</h1>\n            <div class=\"status-badge\">BACKUP SUCCESSFUL</div>\n        </div>\n        <div class=\"content\">\n            <p>The scheduled backup of all n8n workflows has been completed successfully.</p>\n            <div class=\"summary-section\"\n                style=\"background-color: #f9fafb; padding: 20px; border-radius: 8px; border-left: 4px solid #1a2b4b; margin-bottom: 30px;\">\n                <h3 style=\"margin-top: 0; color: #1a2b4b; font-size: 16px; border: none; padding: 0;\">Backup Details\n                </h3>\n                <div style=\"font-size: 14px; line-height: 2;\">\n                    <strong>Total Workflow:</strong> {{ $('Fetch N8N Workflows').all().length }}<br>\n                    <strong>Target Repo:</strong> n8n-global-backup<br>\n                    <strong>Backup Date:</strong> {{ $now.format('FFF') }}<br>\n                    <strong>Repository Link:</strong> <a\n                        href=\"https://your_gitlab_reository_url\"\n                        style=\"color: #3b82f6; text-decoration: none;\">idstar-project/devops/automation/n8n-global-backup</a><br>\n                    <strong>N8N Workflow Link:</strong> <a href=\"https://forge.idstar.group/workflow/y7pbJsav1V96jmOd\"\n                        style=\"color: #3b82f6; text-decoration: none;\">forge.idstar.group</a>\n                </div>\n            </div>\n        </div>\n        <div class=\"footer\">\n            <a href=\"https://your_gitlab_reository_url\"\n                class=\"btn btn-primary\">View Repository</a>\n            <a href=\"https://forge.idstar.group/workflow/y7pbJsav1V96jmOd\" class=\"btn btn-outline\">Check\n                Workflow</a>\n            <p class=\"footer-text\">This is an automated notification from IDStar DevOps Forge.</p>\n        </div>\n    </div>\n</body>\n\n</html>",
+        "options": {}
+      },
+      "id": "01e39ceb-57ba-4453-b1fc-2d3b38c207a1",
+      "name": "Send email",
+      "type": "n8n-nodes-base.emailSend",
+      "position": [
+        1040,
+        1456
+      ],
+      "webhookId": "c2139c63-5ead-4606-b54f-1d94f77d1b20",
+      "typeVersion": 2.1,
+      "executeOnce": true,
+      "credentials": {
+        "smtp": {
+          "id": "D5kPuxu6Upw9r3Z1",
+          "name": "aws-ses-forge.idstar.group.20250228-170307"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "file",
+        "owner": "={{ $('Prepare Backup Metadata').item.json.gitlabprojectOwner }}",
+        "repository": "={{ $('Prepare Backup Metadata').item.json.gitlabprojectPath }}",
+        "filePath": "={{ $json.filePath }}",
+        "fileContent": "={{ JSON.stringify($json.workflowData, null, 2) }}",
+        "commitMessage": "={{ $now.format('ff') }} Backup: {{ $('Fetch N8N Workflows').item.json.name }}.json",
+        "branch": "main"
+      },
+      "id": "e1f6b787-4ae7-4d1a-ac06-1cfc209ca171",
+      "name": "Create to GitLab Repository",
+      "type": "n8n-nodes-base.gitlab",
+      "position": [
+        1360,
+        1264
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "gitlabOAuth2Api": {
+          "id": "Ap5AwbeahWLEI3SN",
+          "name": "git.idstar.group"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "content": "## Backup Initiation: \n\nTriggers manually or weekly to start the process ",
+        "height": 816
+      },
+      "id": "bbb84f69-0df0-4e99-8857-8f7ea999165a",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -368,
+        960
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Workflow Retrieval & Prep: \n\nFetches workflows and prepares metadata",
+        "height": 784,
+        "width": 604,
+        "color": 3
+      },
+      "id": "e308bc58-3616-40d0-8ea6-4bc97dd3817a",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -96,
+        976
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Combined Processing, Storage, and Notification: \n\nProcesses and formats workflows, saves them to GitLab with file existence checks and updates user-wise, logs results, and sends a success email.",
+        "height": 816,
+        "width": 1340,
+        "color": 6
+      },
+      "id": "a360c7a0-5e61-41f8-9515-ca0947017207",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        544,
+        976
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {},
+            {
+              "triggerAtHour": 12
+            }
+          ]
+        }
+      },
+      "id": "1a8e38f2-b504-4c7f-9db0-2a4676c82a9d",
+      "name": "Scheduled Daily Backup",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        -304,
+        1632
+      ],
+      "notesInFlow": true,
+      "typeVersion": 1.2,
+      "notes": "midnight and noon daily backup"
+    },
+    {
+      "parameters": {
+        "url": "https://forge.idstar.group/api/v1/users",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "n8nApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        752,
+        1264
+      ],
+      "id": "9f203c82-cdb9-4606-839b-bb6aa93708d7",
+      "name": "Fetch Users",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "n8nApi": {
+          "id": "6pF9Zy28ajjDaiLn",
+          "name": "N8N_API_KEY"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Log Backup Results": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Control": {
+      "main": [
+        [
+          {
+            "node": "Create to GitLab Repository",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Backup Status": {
+      "main": [
+        [
+          {
+            "node": "Update Backup Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Process Each Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch N8N Workflows": {
+      "main": [
+        [
+          {
+            "node": "Prepare Backup Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Backup Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch N8N Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Each Workflow": {
+      "main": [
+        [
+          {
+            "node": "Log Backup Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Backup Summary": {
+      "main": [
+        [
+          {
+            "node": "Process Each Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Backup Metadata": {
+      "main": [
+        [
+          {
+            "node": "Process Each Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Workflow for GitLab": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Control",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create to GitLab Repository": {
+      "main": [
+        [
+          {
+            "node": "Check Backup Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scheduled Daily Backup": {
+      "main": [
+        [
+          {
+            "node": "Fetch N8N Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Users": {
+      "main": [
+        [
+          {
+            "node": "Format Workflow for GitLab",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "7e512d9f-16eb-48b7-9cfe-55e542c719d5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "62261a4c5ebb607c1175c461a6f0cbfbdddac90317376f4c166dc54a29baaffe"
+  },
+  "id": "y7pbJsav1V96jmOd",
+  "tags": [
+    {
+      "updatedAt": "2026-02-26T07:20:27.831Z",
+      "createdAt": "2026-02-26T07:20:27.831Z",
+      "id": "YXaoVUcoCkAEndgW",
+      "name": "N8N"
+    },
+    {
+      "updatedAt": "2025-07-07T07:22:17.625Z",
+      "createdAt": "2025-07-07T07:22:17.625Z",
+      "id": "rTlvA6WEJCPUsE7r",
+      "name": "GitLab"
+    },
+    {
+      "updatedAt": "2026-02-26T07:20:20.467Z",
+      "createdAt": "2026-02-26T07:20:20.467Z",
+      "id": "vaYXgtSjjk9x2ufa",
+      "name": "Backup"
+    }
+  ]
+}

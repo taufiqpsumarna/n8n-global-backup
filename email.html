@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N8N Backup Notification</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #1a2b4b;
+            padding: 40px 20px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 300;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 14px;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background-color: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .summary-card label {
+            display: block;
+            font-size: 10px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .summary-card span {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a2b4b;
+        }
+
+        h3 {
+            color: #1a2b4b;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+
+        th {
+            text-align: left;
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            padding: 10px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 14px;
+        }
+
+        .user-tag {
+            background-color: #e0e7ff;
+            color: #4338ca;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-success {
+            color: #10b981;
+        }
+
+        .footer {
+            background-color: #f9fafb;
+            padding: 25px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            margin: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #1a2b4b;
+            color: #ffffff !important;
+        }
+
+        .btn-outline {
+            border: 1.5px solid #1a2b4b;
+            color: #1a2b4b !important;
+        }
+
+        .footer-text {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>N8N Automation Bot</h1>
+            <div class="status-badge">BACKUP SUCCESSFUL</div>
+        </div>
+        <div class="content">
+            <p>The scheduled backup of all n8n workflows has been completed successfully.</p>
+            <div class="summary-section"
+                style="background-color: #f9fafb; padding: 20px; border-radius: 8px; border-left: 4px solid #1a2b4b; margin-bottom: 30px;">
+                <h3 style="margin-top: 0; color: #1a2b4b; font-size: 16px; border: none; padding: 0;">Backup Details
+                </h3>
+                <div style="font-size: 14px; line-height: 2;">
+                    <strong>Total Workflow:</strong> {{ $('Fetch N8N Workflows').all().length }}<br>
+                    <strong>Target Repo:</strong> your_n8n_backup_repository<br>
+                    <strong>Backup Date:</strong> {{ $now.format('FFF') }}<br>
+                    <strong>Repository Link:</strong> <a href="https://your_gitlab_reository_url"
+                        style="color: #3b82f6; text-decoration: none;">your_gitlab_reository_url</a><br>
+                    <strong>N8N Workflow Link:</strong> <a href="https://your_n8n_workflow
+                        style=" color: #3b82f6; text-decoration: none;">your_n8n_workflow_host</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <a href="https://your_gitlab_reository_url" class="btn btn-primary">View Repository</a>
+            <a href="https://your_n8n_workflow class=" btn btn-outline">Check
+                Workflow</a>
+            <p class="footer-text">This is an automated notification from your_n8n_workflow_host.</p>
+        </div>
+    </div>
+</body>
+
+</html>
